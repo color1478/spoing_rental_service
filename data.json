@@ -22,5 +22,45 @@
     "rentTime": "2025-01-04T14:32:43.539Z",
     "returnTime": "2025-01-04T14:44:51.059Z",
     "rentValue": false
+  },
+  {
+    "lockerId": "1",
+    "name": "s1",
+    "phone": "01033333333",
+    "rentTime": "2025-01-04T14:53:43.798Z",
+    "returnTime": "2025-01-04T14:53:46.533Z",
+    "rentValue": false
+  },
+  {
+    "lockerId": "4",
+    "name": "차한솔",
+    "phone": "01044444444",
+    "rentTime": "2025-01-04T14:53:59.394Z",
+    "returnTime": "2025-01-04T14:54:02.853Z",
+    "rentValue": false
+  },
+  {
+    "lockerId": "1",
+    "name": "이제호",
+    "phone": "01058302782",
+    "rentTime": "2025-01-04T14:59:04.328Z",
+    "returnTime": "2025-01-04T14:59:07.878Z",
+    "rentValue": false
+  },
+  {
+    "lockerId": "1",
+    "name": "시간표 1",
+    "phone": "01033333333",
+    "rentTime": "2025-01-04T15:02:29.524Z",
+    "returnTime": "2025-01-04T15:02:32.037Z",
+    "rentValue": false
+  },
+  {
+    "lockerId": "1",
+    "name": "차한솔",
+    "phone": "01011111111",
+    "rentTime": "2025-01-04T15:05:44.634Z",
+    "returnTime": "2025-01-04T15:05:48.595Z",
+    "rentValue": false
   }
 ]

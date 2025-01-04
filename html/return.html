@@ -5,45 +5,71 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Return Locker</title>
     <style>
-        /* 스타일 정의 */
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             text-align: center;
             margin: 0;
             padding: 0;
-            background-color: #f4f4f4;
+            background-color: #f9f9f9;
         }
         h1 {
-            margin-top: 20px;
+            margin: 20px 0;
+            font-size: 28px;
+            color: #333;
         }
         .locker-container {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 20px;
             padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
         }
         .locker-button {
-            padding: 10px 20px;
+            padding: 20px;
             font-size: 16px;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
             background-color: #4caf50;
             color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .locker-button:hover:not(.disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
         }
         .locker-button.disabled {
             background-color: #aaa;
             cursor: not-allowed;
+            box-shadow: none;
+        }
+        #final-message {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #4caf50;
+            border: 1px solid #4caf50;
+            padding: 10px;
+            display: inline-block;
+            border-radius: 8px;
+            background-color: #e8f5e9;
         }
         button#back-button {
             margin-top: 20px;
             padding: 10px 20px;
             font-size: 16px;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
             background-color: #4caf50;
             color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button#back-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
         }
     </style>
 </head>
@@ -52,62 +78,77 @@
     <div class="locker-container" id="locker-container">
         <!-- Locker buttons will be dynamically added here -->
     </div>
+    <div id="final-message" style="display: none;"></div>
     <button id="back-button">Back to Main</button>
 
     <script>
-      async function loadLockers() {
-        const container = document.getElementById('locker-container');
-        container.innerHTML = '';
-
-        try {
-            const response = await fetch('/api/get-lockers');
-            const lockerData = await response.json();
-
-            for (let i = 1; i <= 8; i++) {
-                const button = document.createElement('button');
-                button.textContent = `Locker ${i}`;
-                button.classList.add('locker-button');
-
-                const rentedLocker = lockerData.find(entry => entry.lockerId == i && entry.rentValue);
-                if (!rentedLocker) {
-                    button.classList.add('disabled');
-                } else {
-                    button.addEventListener('click', async function handleReturnClick() {
-                        button.removeEventListener('click', handleReturnClick); // 이벤트 리스너 제거
-                        try {
-                            const res = await fetch('/api/return-locker', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ lockerId: i }),
-                            });
-                            const result = await res.json();
-                            alert(result.message);
-
-                            if (result.success) {
-                                button.classList.add('disabled');
-                                document.getElementById('final-message').textContent = `Locker ${i} returned successfully.`;
+        async function loadLockers() {
+            const container = document.getElementById('locker-container');
+            container.innerHTML = '';
+    
+            try {
+                const response = await fetch('/api/get-lockers');
+                const lockerData = await response.json();
+    
+                for (let i = 1; i <= 8; i++) {
+                    const button = document.createElement('button');
+                    button.textContent = `Locker ${i}`;
+                    button.classList.add('locker-button');
+    
+                    const rentedLocker = lockerData.find(entry => entry.lockerId == i && entry.rentValue);
+                    if (!rentedLocker) {
+                        button.classList.add('disabled');
+                    } else {
+                        button.addEventListener('click', async function handleReturnClick() {
+                            button.removeEventListener('click', handleReturnClick); // 이벤트 리스너 제거
+                            try {
+                                const res = await fetch('/api/return-locker', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ lockerId: i }),
+                                });
+                                const result = await res.json();
+    
+                                if (result.success) {
+                                    const returnTime = new Date();
+                                    const rentTime = new Date(rentedLocker.rentTime);
+                                    const durationMinutes = Math.round((returnTime - rentTime) / (1000 * 60));
+    
+                                    alert(
+                                        `Locker ${i} returned successfully!\n\n` +
+                                        `Renter: ${rentedLocker.name}\n` +
+                                        `Phone: ${rentedLocker.phone}\n` +
+                                        `Rent Start: ${rentedLocker.rentTime}\n` +
+                                        `Return Time: ${returnTime.toISOString()}\n` +
+                                        `Duration: ${durationMinutes} minutes\n\n` +
+                                        `The return has been confirmed.`
+                                    );
+                                    button.classList.add('disabled');
+                                    const finalMessage = document.getElementById('final-message');
+                                    finalMessage.textContent = `Locker ${i} returned successfully.`;
+                                    finalMessage.style.display = 'block';
+                                } else {
+                                    alert(result.message);
+                                }
+                            } catch (error) {
+                                console.error('Error returning locker:', error);
+                                alert('Failed to return locker. Please try again.');
                             }
-                        } catch (error) {
-                            console.error('Error returning locker:', error);
-                            alert('Failed to return locker. Please try again.');
-                        }
-                    });
+                        });
+                    }
+    
+                    container.appendChild(button);
                 }
-
-                container.appendChild(button);
+            } catch (error) {
+                console.error('Error loading lockers:', error);
+                alert('Failed to load lockers. Please try again later.');
             }
-        } catch (error) {
-            console.error('Error loading lockers:', error);
-            alert('Failed to load lockers. Please try again later.');
         }
-    }
-
-
+    
         document.getElementById('back-button').addEventListener('click', () => {
             window.location.href = '/';
         });
-
-        // Load lockers when the page loads
+    
         loadLockers();
     </script>
 </body>
