@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Locker System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
+            margin: 20px 0;
+        }
+
+        .locker-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .locker {
+            width: 150px;
+            height: 150px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .locker:hover {
+            transform: scale(1.05);
+        }
+
+        .locker.disabled {
+            background-color: #aaa;
+            cursor: not-allowed;
+        }
+
+        button#return-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #4caf50;
+            color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            display: none;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            width: 300px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-content input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .modal-content button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #4caf50;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Locker System</h1>
+    <div class="locker-container">
+        <!-- 8 lockers -->
+        <button class="locker" data-id="1">Locker 1</button>
+        <button class="locker" data-id="2">Locker 2</button>
+        <button class="locker" data-id="3">Locker 3</button>
+        <button class="locker" data-id="4">Locker 4</button>
+        <button class="locker" data-id="5">Locker 5</button>
+        <button class="locker" data-id="6">Locker 6</button>
+        <button class="locker" data-id="7">Locker 7</button>
+        <button class="locker" data-id="8">Locker 8</button>
+    </div>
+    <button id="return-button">Return Locker</button>
+
+    <div class="modal" id="rent-modal">
+        <div class="modal-content">
+            <h3>Enter Your Details</h3>
+            <input type="text" id="name" placeholder="Name" />
+            <input type="text" id="phone" placeholder="Phone Number" />
+            <button id="confirm-rent">Confirm</button>
+            <button id="cancel-rent">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        const lockers = document.querySelectorAll('.locker');
+        const rentModal = document.getElementById('rent-modal');
+        const confirmRentButton = document.getElementById('confirm-rent');
+        const cancelRentButton = document.getElementById('cancel-rent');
+        let selectedLockerId = null;
+    
+        lockers.forEach(locker => {
+            locker.addEventListener('click', () => {
+                if (locker.classList.contains('disabled')) {
+                    alert('This locker is currently in use.');
+                    return;
+                }
+                selectedLockerId = locker.getAttribute('data-id');
+                rentModal.style.display = 'flex';
+            });
+        });
+    
+        confirmRentButton.addEventListener('click', async () => {
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+    
+            if (!name || !phone) {
+                alert('Please enter your name and phone number.');
+                return;
+            }
+    
+            try {
+                const response = await fetch('/api/rent-locker', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ lockerId: selectedLockerId, name, phone }),
+                });
+                const result = await response.json();
+                alert(result.message);
+                if (response.ok) {
+                    document.querySelector(`.locker[data-id="${selectedLockerId}"]`).classList.add('disabled');
+                    rentModal.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error renting locker:', error);
+                alert('Failed to rent locker. Please try again.');
+            }
+        });
+    
+        cancelRentButton.addEventListener('click', () => {
+            rentModal.style.display = 'none';
+        });
+    
+        document.getElementById('return-button').addEventListener('click', () => {
+            window.location.href = '/return';
+        });
+    
+        // Fetch initial locker states
+        async function loadLockers() {
+            try {
+                const response = await fetch('/api/get-lockers');
+                const lockerData = await response.json();
+                lockerData.forEach(entry => {
+                    if (!entry.returnTime) {
+                        document.querySelector(`.locker[data-id="${entry.lockerId}"]`).classList.add('disabled');
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading lockers:', error);
+            }
+        }
+    
+        loadLockers();
+    </script>
+    
+</body>
+</html>

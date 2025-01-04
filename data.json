@@ -1,0 +1,26 @@
+[
+  {
+    "lockerId": 1,
+    "name": "John Doe",
+    "phone": "1234567890",
+    "rentTime": "2025-01-04T12:00:00.000Z",
+    "returnTime": "2025-01-04T14:13:37.347Z",
+    "rentValue": false
+  },
+  {
+    "lockerId": "1",
+    "name": "ssss",
+    "phone": "01011111111",
+    "rentTime": "2025-01-04T14:32:27.553Z",
+    "returnTime": "2025-01-04T14:32:30.402Z",
+    "rentValue": false
+  },
+  {
+    "lockerId": "2",
+    "name": "이제호",
+    "phone": "01058302782",
+    "rentTime": "2025-01-04T14:32:43.539Z",
+    "returnTime": "2025-01-04T14:44:51.059Z",
+    "rentValue": false
+  }
+]

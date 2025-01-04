@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Return Locker</title>
+    <style>
+        /* 스타일 정의 */
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            margin-top: 20px;
+        }
+        .locker-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            padding: 20px;
+        }
+        .locker-button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #4caf50;
+            color: white;
+        }
+        .locker-button.disabled {
+            background-color: #aaa;
+            cursor: not-allowed;
+        }
+        button#back-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #4caf50;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Return Locker</h1>
+    <div class="locker-container" id="locker-container">
+        <!-- Locker buttons will be dynamically added here -->
+    </div>
+    <button id="back-button">Back to Main</button>
+
+    <script>
+      async function loadLockers() {
+        const container = document.getElementById('locker-container');
+        container.innerHTML = '';
+
+        try {
+            const response = await fetch('/api/get-lockers');
+            const lockerData = await response.json();
+
+            for (let i = 1; i <= 8; i++) {
+                const button = document.createElement('button');
+                button.textContent = `Locker ${i}`;
+                button.classList.add('locker-button');
+
+                const rentedLocker = lockerData.find(entry => entry.lockerId == i && entry.rentValue);
+                if (!rentedLocker) {
+                    button.classList.add('disabled');
+                } else {
+                    button.addEventListener('click', async function handleReturnClick() {
+                        button.removeEventListener('click', handleReturnClick); // 이벤트 리스너 제거
+                        try {
+                            const res = await fetch('/api/return-locker', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ lockerId: i }),
+                            });
+                            const result = await res.json();
+                            alert(result.message);
+
+                            if (result.success) {
+                                button.classList.add('disabled');
+                                document.getElementById('final-message').textContent = `Locker ${i} returned successfully.`;
+                            }
+                        } catch (error) {
+                            console.error('Error returning locker:', error);
+                            alert('Failed to return locker. Please try again.');
+                        }
+                    });
+                }
+
+                container.appendChild(button);
+            }
+        } catch (error) {
+            console.error('Error loading lockers:', error);
+            alert('Failed to load lockers. Please try again later.');
+        }
+    }
+
+
+        document.getElementById('back-button').addEventListener('click', () => {
+            window.location.href = '/';
+        });
+
+        // Load lockers when the page loads
+        loadLockers();
+    </script>
+</body>
+</html>
